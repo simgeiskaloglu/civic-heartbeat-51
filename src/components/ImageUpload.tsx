@@ -47,7 +47,7 @@ export const ImageUpload = ({ onImageSelect, currentImage, className }: ImageUpl
         <div className="relative rounded-lg overflow-hidden border-2 border-border bg-card">
           <img
             src={preview}
-            alt="Problem preview"
+            alt="Sorun önizlemesi"
             className="w-full h-64 object-cover"
           />
           <Button
@@ -68,7 +68,7 @@ export const ImageUpload = ({ onImageSelect, currentImage, className }: ImageUpl
             onClick={() => fileInputRef.current?.click()}
           >
             <Camera className="h-8 w-8 text-primary" />
-            <span className="text-sm">Take Photo</span>
+            <span className="text-sm">Fotoğraf Çek</span>
           </Button>
           <Button
             type="button"
@@ -77,7 +77,7 @@ export const ImageUpload = ({ onImageSelect, currentImage, className }: ImageUpl
             onClick={() => fileInputRef.current?.click()}
           >
             <Upload className="h-8 w-8 text-primary" />
-            <span className="text-sm">Upload Photo</span>
+            <span className="text-sm">Fotoğraf Yükle</span>
           </Button>
         </div>
       )}

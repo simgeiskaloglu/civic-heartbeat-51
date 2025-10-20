@@ -39,8 +39,8 @@ const ReportProblem = () => {
     localStorage.setItem("reports", JSON.stringify(reports));
 
     toast({
-      title: "Report Submitted",
-      description: "Your report has been sent to the relevant municipality.",
+      title: "Rapor Gönderildi",
+      description: "Raporunuz ilgili belediyeye gönderildi.",
     });
 
     navigate("/dashboard");
@@ -53,7 +53,7 @@ const ReportProblem = () => {
           <Link to="/">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
+              Ana Sayfaya Dön
             </Button>
           </Link>
         </div>
@@ -62,18 +62,18 @@ const ReportProblem = () => {
       <main className="container mx-auto px-4 py-8 max-w-2xl">
         <Card>
           <CardHeader>
-            <CardTitle>Report a Problem</CardTitle>
+            <CardTitle>Sorun Bildir</CardTitle>
             <CardDescription>
-              Help us improve your community by reporting local issues
+              Yerel sorunları bildirerek topluluğunuzu iyileştirmemize yardımcı olun
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="title">Problem Title</Label>
+                <Label htmlFor="title">Sorun Başlığı</Label>
                 <Input
                   id="title"
-                  placeholder="e.g., Broken streetlight on Main St"
+                  placeholder="Örn: Ana Caddede kırık sokak lambası"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
@@ -81,31 +81,31 @@ const ReportProblem = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">Kategori</Label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
                   required
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select problem type" />
+                    <SelectValue placeholder="Sorun türünü seçin" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pothole">Pothole</SelectItem>
-                    <SelectItem value="streetlight">Broken Streetlight</SelectItem>
-                    <SelectItem value="garbage">Garbage / Litter</SelectItem>
-                    <SelectItem value="damaged-sign">Damaged Sign</SelectItem>
-                    <SelectItem value="graffiti">Graffiti</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="pothole">Çukur</SelectItem>
+                    <SelectItem value="streetlight">Bozuk Sokak Lambası</SelectItem>
+                    <SelectItem value="garbage">Çöp / Atık</SelectItem>
+                    <SelectItem value="damaged-sign">Hasarlı Tabela</SelectItem>
+                    <SelectItem value="graffiti">Grafiti</SelectItem>
+                    <SelectItem value="other">Diğer</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Açıklama</Label>
                 <Textarea
                   id="description"
-                  placeholder="Describe the problem in detail..."
+                  placeholder="Sorunu detaylı bir şekilde açıklayın..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={4}
@@ -114,7 +114,7 @@ const ReportProblem = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Photo</Label>
+                <Label>Fotoğraf</Label>
                 <ImageUpload
                   onImageSelect={(file) => setFormData({ ...formData, image: file })}
                 />
@@ -127,14 +127,14 @@ const ReportProblem = () => {
 
               <div className="flex gap-4">
                 <Button type="submit" className="flex-1" size="lg">
-                  Submit Report
+                  Raporu Gönder
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => navigate("/")}
                 >
-                  Cancel
+                  İptal
                 </Button>
               </div>
             </form>

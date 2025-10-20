@@ -30,11 +30,11 @@ export const LocationPicker = ({ onLocationSelect, currentLocation }: LocationPi
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="location">Location</Label>
+        <Label htmlFor="location">Konum</Label>
         <div className="flex gap-2">
           <Input
             id="location"
-            placeholder="Enter address or use current location"
+            placeholder="Adres girin veya mevcut konumu kullanın"
             value={location}
             onChange={(e) => {
               setLocation(e.target.value);
@@ -56,7 +56,7 @@ export const LocationPicker = ({ onLocationSelect, currentLocation }: LocationPi
       <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center border-2 border-border">
         <div className="text-center text-muted-foreground">
           <MapPin className="h-12 w-12 mx-auto mb-2 text-primary" />
-          <p className="text-sm">Map view</p>
+          <p className="text-sm">Harita görünümü</p>
           {location && <p className="text-xs mt-1">{location}</p>}
         </div>
       </div>

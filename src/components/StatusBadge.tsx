@@ -10,15 +10,15 @@ interface StatusBadgeProps {
 
 const statusConfig = {
   submitted: {
-    label: "Submitted",
+    label: "Gönderildi",
     className: "bg-info text-info-foreground hover:bg-info/90",
   },
   "in-progress": {
-    label: "In Progress",
+    label: "İşlemde",
     className: "bg-warning text-warning-foreground hover:bg-warning/90",
   },
   resolved: {
-    label: "Resolved",
+    label: "Çözüldü",
     className: "bg-success text-success-foreground hover:bg-success/90",
   },
 };

@@ -28,7 +28,7 @@ const Dashboard = () => {
           <Link to="/report">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              New Report
+              Yeni Rapor
             </Button>
           </Link>
         </div>
@@ -36,9 +36,9 @@ const Dashboard = () => {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">My Reports</h2>
+          <h2 className="text-3xl font-bold mb-2">Raporlarım</h2>
           <p className="text-muted-foreground">
-            Track the status of your submitted problem reports
+            Gönderdiğiniz sorun raporlarının durumunu takip edin
           </p>
         </div>
 
@@ -47,14 +47,14 @@ const Dashboard = () => {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No reports yet</h3>
+            <h3 className="text-xl font-semibold mb-2">Henüz rapor yok</h3>
             <p className="text-muted-foreground mb-6">
-              Start by reporting a problem in your community
+              Topluluğunuzdaki bir sorunu bildirerek başlayın
             </p>
             <Link to="/report">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Report a Problem
+                Sorun Bildir
               </Button>
             </Link>
           </div>

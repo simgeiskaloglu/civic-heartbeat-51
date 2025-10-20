@@ -51,7 +51,7 @@ export const ReportCard = ({ report }: ReportCardProps) => {
       </CardContent>
       <CardFooter>
         <span className="text-xs text-muted-foreground capitalize">
-          Category: {report.category}
+          Kategori: {report.category}
         </span>
       </CardFooter>
     </Card>
