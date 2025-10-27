@@ -36,20 +36,35 @@ const Dashboard = () => {
     }
   };
 
-  const handleResolutionResponse = (stillExists: boolean) => {
-    if (stillExists && selectedReportId) {
+  const handleResolutionResponse = (stillExists: boolean, explanation?: string) => {
+    if (selectedReportId) {
       const storedReports = JSON.parse(localStorage.getItem("reports") || "[]");
-      const updatedReports = storedReports.map((report: any) =>
-        report.id === selectedReportId
-          ? { ...report, status: "submitted", userReportedUnresolved: true }
-          : report
-      );
-      localStorage.setItem("reports", JSON.stringify(updatedReports));
-      loadReports();
-      toast({
-        title: "Durum Güncellendi",
-        description: "Rapor 'Çözülmemiş Bildirimler' listesine eklendi.",
-      });
+      
+      if (stillExists) {
+        const updatedReports = storedReports.map((report: any) =>
+          report.id === selectedReportId
+            ? { ...report, status: "submitted", userReportedUnresolved: true }
+            : report
+        );
+        localStorage.setItem("reports", JSON.stringify(updatedReports));
+        loadReports();
+        toast({
+          title: "Durum Güncellendi",
+          description: "Rapor 'Çözülmemiş Bildirimler' listesine eklendi.",
+        });
+      } else if (explanation) {
+        const updatedReports = storedReports.map((report: any) =>
+          report.id === selectedReportId
+            ? { ...report, userExplanation: explanation }
+            : report
+        );
+        localStorage.setItem("reports", JSON.stringify(updatedReports));
+        loadReports();
+        toast({
+          title: "Açıklama Kaydedildi",
+          description: "Kullanıcı açıklamanız başarıyla kaydedildi.",
+        });
+      }
     }
     setModalOpen(false);
     setSelectedReportId(null);

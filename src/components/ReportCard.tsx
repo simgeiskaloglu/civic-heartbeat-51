@@ -13,6 +13,7 @@ export interface Report {
   imageUrl?: string;
   createdAt: Date;
   userReportedUnresolved?: boolean;
+  userExplanation?: string;
 }
 
 interface ReportCardProps {

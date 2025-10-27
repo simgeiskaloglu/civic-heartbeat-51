@@ -128,10 +128,23 @@ const Admin = () => {
                         <span>{format(report.createdAt, "dd/MM/yyyy")}</span>
                       </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-3">
                       <p className="text-xs text-muted-foreground capitalize">
                         Kategori: {report.category}
                       </p>
+                      {report.userExplanation && (
+                        <div className="p-3 bg-muted rounded-md">
+                          <p className="text-xs font-semibold mb-1">Kullanıcı Açıklaması:</p>
+                          <p className="text-sm">{report.userExplanation}</p>
+                        </div>
+                      )}
+                      {report.userReportedUnresolved && (
+                        <div className="p-3 bg-destructive/10 rounded-md">
+                          <p className="text-xs font-semibold text-destructive">
+                            ⚠️ Kullanıcı sorununun devam ettiğini bildirdi
+                          </p>
+                        </div>
+                      )}
                     </CardContent>
                     <CardFooter className="flex gap-2">
                       {report.status === "submitted" && (
