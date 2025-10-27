@@ -1,21 +1,59 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ReportCard, Report } from "@/components/ReportCard";
+import { Report } from "@/components/ReportCard";
 import { Link } from "react-router-dom";
 import { AlertCircle, Plus } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Calendar, MapPin } from "lucide-react";
+import { format } from "date-fns";
+import { ResolutionModal } from "@/components/ResolutionModal";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const [reports, setReports] = useState<Report[]>([]);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Load reports from localStorage
+    loadReports();
+  }, []);
+
+  const loadReports = () => {
     const storedReports = JSON.parse(localStorage.getItem("reports") || "[]");
     const parsedReports = storedReports.map((report: any) => ({
       ...report,
       createdAt: new Date(report.createdAt),
     }));
     setReports(parsedReports);
-  }, []);
+  };
+
+  const handleReportClick = (report: Report) => {
+    if (report.status === "resolved") {
+      setSelectedReportId(report.id);
+      setModalOpen(true);
+    }
+  };
+
+  const handleResolutionResponse = (stillExists: boolean) => {
+    if (stillExists && selectedReportId) {
+      const storedReports = JSON.parse(localStorage.getItem("reports") || "[]");
+      const updatedReports = storedReports.map((report: any) =>
+        report.id === selectedReportId
+          ? { ...report, status: "submitted" }
+          : report
+      );
+      localStorage.setItem("reports", JSON.stringify(updatedReports));
+      loadReports();
+      toast({
+        title: "Durum Güncellendi",
+        description: "Rapor durumu 'Gönderildi' olarak değiştirildi.",
+      });
+    }
+    setModalOpen(false);
+    setSelectedReportId(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,10 +99,56 @@ const Dashboard = () => {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reports.map((report) => (
-              <ReportCard key={report.id} report={report} />
+              <Card
+                key={report.id}
+                className={`overflow-hidden hover:shadow-lg transition-shadow ${
+                  report.status === "resolved" ? "cursor-pointer" : ""
+                }`}
+                onClick={() => handleReportClick(report)}
+              >
+                {report.imageUrl && (
+                  <div className="aspect-video w-full overflow-hidden bg-muted">
+                    <img
+                      src={report.imageUrl}
+                      alt={report.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <CardHeader className="space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-lg line-clamp-1">{report.title}</h3>
+                    <StatusBadge status={report.status} />
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {report.description}
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span className="line-clamp-1">{report.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>{format(report.createdAt, "MMM d, yyyy")}</span>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <span className="text-xs text-muted-foreground capitalize">
+                    Kategori: {report.category}
+                  </span>
+                </CardFooter>
+              </Card>
             ))}
           </div>
         )}
+        
+        <ResolutionModal
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          onResponse={handleResolutionResponse}
+        />
       </main>
     </div>
   );
