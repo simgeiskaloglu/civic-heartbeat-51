@@ -17,13 +17,13 @@ const AdminLogin = () => {
     e.preventDefault();
     
     // Simple admin authentication (for demo purposes)
-    if (username === "admin" && password === "admin123") {
+    if (username === "admin" && password === "123") {
       localStorage.setItem("isAdmin", "true");
       navigate("/admin/dashboard");
     } else {
       toast({
         title: "Giriş Başarısız",
-        description: "Kullanıcı adı veya şifre hatalı",
+        description: "Geçersiz kullanıcı adı veya şifre.",
         variant: "destructive",
       });
     }
