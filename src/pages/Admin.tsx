@@ -13,7 +13,7 @@ const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [reports, setReports] = useState<Report[]>([]);
-  const [filter, setFilter] = useState<ReportStatus | "all">("all");
+  const [filter, setFilter] = useState<ReportStatus | "all" | "unresolved">("all");
 
   useEffect(() => {
     // Check if user is admin
@@ -38,7 +38,7 @@ const Admin = () => {
   const updateReportStatus = (reportId: string, newStatus: ReportStatus) => {
     const storedReports = JSON.parse(localStorage.getItem("reports") || "[]");
     const updatedReports = storedReports.map((report: any) =>
-      report.id === reportId ? { ...report, status: newStatus } : report
+      report.id === reportId ? { ...report, status: newStatus, userReportedUnresolved: false } : report
     );
     localStorage.setItem("reports", JSON.stringify(updatedReports));
     loadReports();
@@ -53,8 +53,14 @@ const Admin = () => {
     navigate("/admin");
   };
 
+  const unresolvedReports = reports.filter((r) => r.userReportedUnresolved === true);
+  
   const filteredReports =
-    filter === "all" ? reports : reports.filter((r) => r.status === filter);
+    filter === "all" 
+      ? reports 
+      : filter === "unresolved"
+      ? unresolvedReports
+      : reports.filter((r) => r.status === filter);
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,6 +81,9 @@ const Admin = () => {
         <Tabs defaultValue="all" onValueChange={(v) => setFilter(v as any)}>
           <TabsList className="mb-6">
             <TabsTrigger value="all">Tümü ({reports.length})</TabsTrigger>
+            <TabsTrigger value="unresolved">
+              Çözülmemiş Bildirimler ({unresolvedReports.length})
+            </TabsTrigger>
             <TabsTrigger value="submitted">
               Gönderildi ({reports.filter((r) => r.status === "submitted").length})
             </TabsTrigger>

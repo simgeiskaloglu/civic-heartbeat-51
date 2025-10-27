@@ -41,14 +41,14 @@ const Dashboard = () => {
       const storedReports = JSON.parse(localStorage.getItem("reports") || "[]");
       const updatedReports = storedReports.map((report: any) =>
         report.id === selectedReportId
-          ? { ...report, status: "submitted" }
+          ? { ...report, status: "submitted", userReportedUnresolved: true }
           : report
       );
       localStorage.setItem("reports", JSON.stringify(updatedReports));
       loadReports();
       toast({
         title: "Durum Güncellendi",
-        description: "Rapor durumu 'Gönderildi' olarak değiştirildi.",
+        description: "Rapor 'Çözülmemiş Bildirimler' listesine eklendi.",
       });
     }
     setModalOpen(false);
