@@ -25,26 +25,33 @@ export const ResolutionModal = ({
 }: ResolutionModalProps) => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [explanation, setExplanation] = useState("");
+  const [responseType, setResponseType] = useState<"yes" | "no" | null>(null);
 
   const handleNo = () => {
+    setResponseType("no");
+    setShowExplanation(true);
+  };
+
+  const handleYes = () => {
+    setResponseType("yes");
     setShowExplanation(true);
   };
 
   const handleSubmitExplanation = () => {
-    onResponse(false, explanation);
+    if (responseType === "yes") {
+      onResponse(true, explanation);
+    } else {
+      onResponse(false, explanation);
+    }
     setShowExplanation(false);
     setExplanation("");
-  };
-
-  const handleYes = () => {
-    onResponse(true);
-    setShowExplanation(false);
-    setExplanation("");
+    setResponseType(null);
   };
 
   const handleCancel = () => {
     setShowExplanation(false);
     setExplanation("");
+    setResponseType(null);
     onOpenChange(false);
   };
 
@@ -55,7 +62,9 @@ export const ResolutionModal = ({
           <AlertDialogTitle>Sorun Durumu</AlertDialogTitle>
           <AlertDialogDescription>
             {showExplanation
-              ? "Kısaca açıklayınız (örneğin: ekip geldi, sorun giderildi)."
+              ? responseType === "yes"
+                ? "Sorunun neden devam ettiğini kısaca açıklayınız."
+                : "Kısaca açıklayınız (örneğin: ekip geldi, sorun giderildi)."
               : "Sorun hala devam ediyor mu?"}
           </AlertDialogDescription>
         </AlertDialogHeader>

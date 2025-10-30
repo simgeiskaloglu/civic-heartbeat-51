@@ -43,7 +43,12 @@ const Dashboard = () => {
       if (stillExists) {
         const updatedReports = storedReports.map((report: any) =>
           report.id === selectedReportId
-            ? { ...report, status: "submitted", userReportedUnresolved: true }
+            ? { 
+                ...report, 
+                status: "submitted", 
+                userReportedUnresolved: true,
+                userExplanation: explanation || report.userExplanation
+              }
             : report
         );
         localStorage.setItem("reports", JSON.stringify(updatedReports));
