@@ -62,10 +62,10 @@ export const ResolutionModal = ({
         
         {showExplanation && (
           <div className="space-y-2">
-            <Label htmlFor="explanation">Açıklama</Label>
+            <Label htmlFor="explanation">Sorunun devam etme sebebi (kısa açıklama):</Label>
             <Textarea
               id="explanation"
-              placeholder="Sorunun neden devam ettiğini yazın..."
+              placeholder="Sorunun neden devam ettiğini kısaca yazın..."
               value={explanation}
               onChange={(e) => setExplanation(e.target.value)}
               rows={4}
