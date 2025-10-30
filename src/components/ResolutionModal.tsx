@@ -25,33 +25,26 @@ export const ResolutionModal = ({
 }: ResolutionModalProps) => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [explanation, setExplanation] = useState("");
-  const [responseType, setResponseType] = useState<"yes" | "no" | null>(null);
 
   const handleNo = () => {
-    setResponseType("no");
-    setShowExplanation(true);
+    onResponse(false);
+    setShowExplanation(false);
+    setExplanation("");
   };
 
   const handleYes = () => {
-    setResponseType("yes");
     setShowExplanation(true);
   };
 
   const handleSubmitExplanation = () => {
-    if (responseType === "yes") {
-      onResponse(true, explanation);
-    } else {
-      onResponse(false, explanation);
-    }
+    onResponse(true, explanation);
     setShowExplanation(false);
     setExplanation("");
-    setResponseType(null);
   };
 
   const handleCancel = () => {
     setShowExplanation(false);
     setExplanation("");
-    setResponseType(null);
     onOpenChange(false);
   };
 
@@ -62,22 +55,21 @@ export const ResolutionModal = ({
           <AlertDialogTitle>Sorun Durumu</AlertDialogTitle>
           <AlertDialogDescription>
             {showExplanation
-              ? responseType === "yes"
-                ? "Sorunun neden devam ettiğini kısaca açıklayınız."
-                : "Kısaca açıklayınız (örneğin: ekip geldi, sorun giderildi)."
+              ? "Sorunun neden devam ettiğini kısaca açıklayınız."
               : "Sorun hala devam ediyor mu?"}
           </AlertDialogDescription>
         </AlertDialogHeader>
         
         {showExplanation && (
           <div className="space-y-2">
-            <Label htmlFor="explanation">Kullanıcı Açıklaması</Label>
+            <Label htmlFor="explanation">Açıklama</Label>
             <Textarea
               id="explanation"
-              placeholder="Açıklamanızı yazın..."
+              placeholder="Sorunun neden devam ettiğini yazın..."
               value={explanation}
               onChange={(e) => setExplanation(e.target.value)}
               rows={4}
+              autoFocus
             />
           </div>
         )}
@@ -88,18 +80,21 @@ export const ResolutionModal = ({
               <AlertDialogCancel onClick={handleCancel}>
                 İptal
               </AlertDialogCancel>
-              <AlertDialogAction onClick={handleSubmitExplanation}>
+              <AlertDialogAction 
+                onClick={handleSubmitExplanation}
+                disabled={!explanation.trim()}
+              >
                 Gönder
               </AlertDialogAction>
             </>
           ) : (
             <>
-              <AlertDialogCancel onClick={handleNo}>
-                Hayır
-              </AlertDialogCancel>
               <AlertDialogAction onClick={handleYes}>
                 Evet
               </AlertDialogAction>
+              <AlertDialogCancel onClick={handleNo}>
+                Hayır
+              </AlertDialogCancel>
             </>
           )}
         </AlertDialogFooter>

@@ -40,14 +40,14 @@ const Dashboard = () => {
     if (selectedReportId) {
       const storedReports = JSON.parse(localStorage.getItem("reports") || "[]");
       
-      if (stillExists) {
+      if (stillExists && explanation) {
         const updatedReports = storedReports.map((report: any) =>
           report.id === selectedReportId
             ? { 
                 ...report, 
                 status: "submitted", 
                 userReportedUnresolved: true,
-                userExplanation: explanation || report.userExplanation
+                userExplanation: explanation
               }
             : report
         );
@@ -57,17 +57,11 @@ const Dashboard = () => {
           title: "Durum Güncellendi",
           description: "Rapor 'Çözülmemiş Bildirimler' listesine eklendi.",
         });
-      } else if (explanation) {
-        const updatedReports = storedReports.map((report: any) =>
-          report.id === selectedReportId
-            ? { ...report, userExplanation: explanation }
-            : report
-        );
-        localStorage.setItem("reports", JSON.stringify(updatedReports));
-        loadReports();
+      } else if (!stillExists) {
+        // User confirmed the issue is resolved, just close the modal
         toast({
-          title: "Açıklama Kaydedildi",
-          description: "Kullanıcı açıklamanız başarıyla kaydedildi.",
+          title: "Teşekkürler",
+          description: "Geri bildiriminiz kaydedildi.",
         });
       }
     }
