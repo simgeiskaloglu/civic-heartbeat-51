@@ -17,6 +17,7 @@ export interface Report {
   resolvedAt?: Date;
   userReportedUnresolved?: boolean;
   userExplanation?: string;
+  adminResponse?: string;
 }
 
 interface ReportCardProps {

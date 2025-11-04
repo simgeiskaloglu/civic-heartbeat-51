@@ -8,12 +8,15 @@ import { StatusBadge, ReportStatus } from "@/components/StatusBadge";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { ReportDetailModal } from "@/components/ReportDetailModal";
 
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [reports, setReports] = useState<Report[]>([]);
   const [filter, setFilter] = useState<ReportStatus | "all" | "unresolved">("all");
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   useEffect(() => {
     // Check if user is admin
@@ -74,6 +77,16 @@ const Admin = () => {
     navigate("/admin");
   };
 
+  const handleApprove = (reportId: string) => {
+    updateReportStatus(reportId, "in-progress");
+    setDetailModalOpen(false);
+  };
+
+  const handleMarkSolved = (reportId: string) => {
+    updateReportStatus(reportId, "resolved");
+    setDetailModalOpen(false);
+  };
+
   const unresolvedReports = reports.filter((r) => r.userReportedUnresolved === true);
   
   const filteredReports =
@@ -124,7 +137,14 @@ const Admin = () => {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredReports.map((report) => (
-                  <Card key={report.id} className="overflow-hidden">
+                  <Card 
+                    key={report.id} 
+                    className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => {
+                      setSelectedReport(report);
+                      setDetailModalOpen(true);
+                    }}
+                  >
                     {report.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden bg-muted">
                         <img
@@ -153,12 +173,6 @@ const Admin = () => {
                       <p className="text-xs text-muted-foreground capitalize">
                         Kategori: {report.category}
                       </p>
-                      {report.userExplanation && (
-                        <div className="p-3 bg-muted rounded-md">
-                          <p className="text-xs font-semibold mb-1">Kullanıcı Açıklaması:</p>
-                          <p className="text-sm">{report.userExplanation}</p>
-                        </div>
-                      )}
                       {report.userReportedUnresolved && (
                         <div className="p-3 bg-destructive/10 rounded-md">
                           <p className="text-xs font-semibold text-destructive">
@@ -167,37 +181,21 @@ const Admin = () => {
                         </div>
                       )}
                     </CardContent>
-                    <CardFooter className="flex gap-2">
-                      {report.status === "submitted" && (
-                        <Button
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => updateReportStatus(report.id, "in-progress")}
-                        >
-                          Onayla
-                        </Button>
-                      )}
-                      {report.status === "in-progress" && (
-                        <Button
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => updateReportStatus(report.id, "resolved")}
-                        >
-                          Çözüldü
-                        </Button>
-                      )}
-                      {report.status === "resolved" && (
-                        <div className="flex-1 text-center text-sm text-success">
-                          ✓ Çözüldü
-                        </div>
-                      )}
-                    </CardFooter>
                   </Card>
                 ))}
               </div>
             )}
           </TabsContent>
         </Tabs>
+
+        <ReportDetailModal
+          report={selectedReport}
+          open={detailModalOpen}
+          onOpenChange={setDetailModalOpen}
+          isAdmin={true}
+          onApprove={handleApprove}
+          onMarkSolved={handleMarkSolved}
+        />
       </main>
     </div>
   );

@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Report } from "./ReportCard";
 import { StatusBadge } from "./StatusBadge";
+import { Button } from "./ui/button";
 import { Calendar, MapPin, Tag, CheckCircle2, Clock } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -15,12 +16,22 @@ interface ReportDetailModalProps {
   report: Report | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isAdmin?: boolean;
+  onApprove?: (reportId: string) => void;
+  onMarkSolved?: (reportId: string) => void;
+  onFollowUp?: (reportId: string) => void;
+  onConfirmSolved?: (reportId: string) => void;
 }
 
 export const ReportDetailModal = ({
   report,
   open,
   onOpenChange,
+  isAdmin = false,
+  onApprove,
+  onMarkSolved,
+  onFollowUp,
+  onConfirmSolved,
 }: ReportDetailModalProps) => {
   if (!report) return null;
 
@@ -181,14 +192,69 @@ export const ReportDetailModal = ({
             </div>
           </div>
 
+          {/* Admin Response if exists */}
+          {report.adminResponse && (
+            <div className="p-4 bg-primary/10 rounded-lg space-y-2">
+              <p className="text-sm font-semibold text-primary">
+                📋 Belediye Yanıtı
+              </p>
+              <p className="text-sm">{report.adminResponse}</p>
+            </div>
+          )}
+
           {/* User Explanation if exists */}
           {report.userExplanation && (
             <div className="p-4 bg-destructive/10 rounded-lg space-y-2">
               <p className="text-sm font-semibold text-destructive">
-                ⚠️ Kullanıcı Bildirimi
+                ⚠️ Kullanıcı Takip Notu
               </p>
               <p className="text-sm">{report.userExplanation}</p>
             </div>
+          )}
+
+          {/* Action Buttons */}
+          {isAdmin ? (
+            <div className="flex gap-3 pt-4 border-t">
+              {report.status === "submitted" && onApprove && (
+                <Button 
+                  onClick={() => onApprove(report.id)}
+                  className="flex-1"
+                >
+                  Onayla
+                </Button>
+              )}
+              {report.status === "in-progress" && onMarkSolved && (
+                <Button 
+                  onClick={() => onMarkSolved(report.id)}
+                  className="flex-1"
+                >
+                  Çözüldü Olarak İşaretle
+                </Button>
+              )}
+            </div>
+          ) : (
+            report.status === "resolved" && (
+              <div className="flex gap-3 pt-4 border-t">
+                {onFollowUp && (
+                  <Button 
+                    variant="destructive"
+                    onClick={() => onFollowUp(report.id)}
+                    className="flex-1"
+                  >
+                    Sorun Devam Ediyor
+                  </Button>
+                )}
+                {onConfirmSolved && (
+                  <Button 
+                    variant="outline"
+                    onClick={() => onConfirmSolved(report.id)}
+                    className="flex-1"
+                  >
+                    Sorun Çözüldü
+                  </Button>
+                )}
+              </div>
+            )
           )}
         </div>
       </DialogContent>

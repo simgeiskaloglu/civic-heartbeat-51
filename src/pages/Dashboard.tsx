@@ -8,12 +8,15 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Calendar, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { ResolutionModal } from "@/components/ResolutionModal";
+import { ReportDetailModal } from "@/components/ReportDetailModal";
 import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -33,10 +36,27 @@ const Dashboard = () => {
   };
 
   const handleReportClick = (report: Report) => {
+    setSelectedReport(report);
     if (report.status === "resolved") {
-      setSelectedReportId(report.id);
       setModalOpen(true);
+      setSelectedReportId(report.id);
+    } else {
+      setDetailModalOpen(true);
     }
+  };
+
+  const handleFollowUp = (reportId: string) => {
+    setSelectedReportId(reportId);
+    setModalOpen(true);
+    setDetailModalOpen(false);
+  };
+
+  const handleConfirmSolved = () => {
+    toast({
+      title: "Teşekkürler",
+      description: "Geri bildiriminiz kaydedildi.",
+    });
+    setDetailModalOpen(false);
   };
 
   const handleResolutionResponse = (stillExists: boolean, explanation?: string) => {
@@ -118,9 +138,7 @@ const Dashboard = () => {
             {reports.map((report) => (
               <Card
                 key={report.id}
-                className={`overflow-hidden hover:shadow-lg transition-shadow ${
-                  report.status === "resolved" ? "cursor-pointer" : ""
-                }`}
+                className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => handleReportClick(report)}
               >
                 {report.imageUrl && (
@@ -165,6 +183,15 @@ const Dashboard = () => {
           open={modalOpen}
           onOpenChange={setModalOpen}
           onResponse={handleResolutionResponse}
+        />
+
+        <ReportDetailModal
+          report={selectedReport}
+          open={detailModalOpen}
+          onOpenChange={setDetailModalOpen}
+          isAdmin={false}
+          onFollowUp={handleFollowUp}
+          onConfirmSolved={handleConfirmSolved}
         />
       </main>
     </div>
