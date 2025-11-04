@@ -31,15 +31,36 @@ const Admin = () => {
     const parsedReports = storedReports.map((report: any) => ({
       ...report,
       createdAt: new Date(report.createdAt),
+      submittedAt: report.submittedAt ? new Date(report.submittedAt) : undefined,
+      approvedAt: report.approvedAt ? new Date(report.approvedAt) : undefined,
+      resolvedAt: report.resolvedAt ? new Date(report.resolvedAt) : undefined,
     }));
     setReports(parsedReports);
   };
 
   const updateReportStatus = (reportId: string, newStatus: ReportStatus) => {
     const storedReports = JSON.parse(localStorage.getItem("reports") || "[]");
-    const updatedReports = storedReports.map((report: any) =>
-      report.id === reportId ? { ...report, status: newStatus, userReportedUnresolved: false } : report
-    );
+    const now = new Date().toISOString();
+    
+    const updatedReports = storedReports.map((report: any) => {
+      if (report.id === reportId) {
+        const updates: any = { 
+          status: newStatus, 
+          userReportedUnresolved: false 
+        };
+        
+        // Add timestamp based on status
+        if (newStatus === "in-progress" && !report.approvedAt) {
+          updates.approvedAt = now;
+        } else if (newStatus === "resolved" && !report.resolvedAt) {
+          updates.resolvedAt = now;
+        }
+        
+        return { ...report, ...updates };
+      }
+      return report;
+    });
+    
     localStorage.setItem("reports", JSON.stringify(updatedReports));
     loadReports();
     toast({

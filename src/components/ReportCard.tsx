@@ -12,6 +12,9 @@ export interface Report {
   status: ReportStatus;
   imageUrl?: string;
   createdAt: Date;
+  submittedAt?: Date;
+  approvedAt?: Date;
+  resolvedAt?: Date;
   userReportedUnresolved?: boolean;
   userExplanation?: string;
 }

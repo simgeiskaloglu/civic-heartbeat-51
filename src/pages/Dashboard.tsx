@@ -25,6 +25,9 @@ const Dashboard = () => {
     const parsedReports = storedReports.map((report: any) => ({
       ...report,
       createdAt: new Date(report.createdAt),
+      submittedAt: report.submittedAt ? new Date(report.submittedAt) : undefined,
+      approvedAt: report.approvedAt ? new Date(report.approvedAt) : undefined,
+      resolvedAt: report.resolvedAt ? new Date(report.resolvedAt) : undefined,
     }));
     setReports(parsedReports);
   };

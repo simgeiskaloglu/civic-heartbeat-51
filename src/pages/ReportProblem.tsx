@@ -28,12 +28,14 @@ const ReportProblem = () => {
     
     // Store report in localStorage for demo purposes
     const reports = JSON.parse(localStorage.getItem("reports") || "[]");
+    const now = new Date().toISOString();
     const newReport = {
       id: Math.random().toString(36).substr(2, 9),
       ...formData,
       imageUrl: formData.image ? URL.createObjectURL(formData.image) : undefined,
       status: "submitted",
-      createdAt: new Date().toISOString(),
+      createdAt: now,
+      submittedAt: now,
     };
     reports.push(newReport);
     localStorage.setItem("reports", JSON.stringify(reports));

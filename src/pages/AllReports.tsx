@@ -7,6 +7,7 @@ import { AlertCircle, ArrowLeft, Send } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { format } from "date-fns";
+import { ReportDetailModal } from "@/components/ReportDetailModal";
 
 interface Comment {
   id: string;
@@ -21,12 +22,17 @@ interface ReportWithComments extends Report {
 const AllReports = () => {
   const [reports, setReports] = useState<ReportWithComments[]>([]);
   const [commentTexts, setCommentTexts] = useState<{ [key: string]: string }>({});
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   useEffect(() => {
     const storedReports = JSON.parse(localStorage.getItem("reports") || "[]");
     const parsedReports = storedReports.map((report: any) => ({
       ...report,
       createdAt: new Date(report.createdAt),
+      submittedAt: report.submittedAt ? new Date(report.submittedAt) : undefined,
+      approvedAt: report.approvedAt ? new Date(report.approvedAt) : undefined,
+      resolvedAt: report.resolvedAt ? new Date(report.resolvedAt) : undefined,
       comments: (report.comments || []).map((comment: any) => ({
         ...comment,
         createdAt: new Date(comment.createdAt),
@@ -84,7 +90,14 @@ const AllReports = () => {
         ) : (
           <div className="space-y-6 max-w-3xl mx-auto">
             {reports.map((report) => (
-              <Card key={report.id} className="overflow-hidden">
+              <Card 
+                key={report.id} 
+                className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => {
+                  setSelectedReport(report);
+                  setDetailModalOpen(true);
+                }}
+              >
                 {report.imageUrl && (
                   <div className="aspect-video w-full overflow-hidden bg-muted">
                     <img
@@ -130,7 +143,7 @@ const AllReports = () => {
                 </CardContent>
 
                 <CardFooter>
-                  <div className="flex gap-2 w-full">
+                  <div className="flex gap-2 w-full" onClick={(e) => e.stopPropagation()}>
                     <Input
                       placeholder="Yorum ekle..."
                       value={commentTexts[report.id] || ""}
@@ -155,6 +168,12 @@ const AllReports = () => {
             ))}
           </div>
         )}
+
+        <ReportDetailModal
+          report={selectedReport}
+          open={detailModalOpen}
+          onOpenChange={setDetailModalOpen}
+        />
       </main>
     </div>
   );
