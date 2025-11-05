@@ -45,18 +45,32 @@ const Dashboard = () => {
     }
   };
 
-  const handleFollowUp = (reportId: string) => {
-    setSelectedReportId(reportId);
-    setModalOpen(true);
-    setDetailModalOpen(false);
-  };
-
-  const handleConfirmSolved = () => {
-    toast({
-      title: "Teşekkürler",
-      description: "Geri bildiriminiz kaydedildi.",
-    });
-    setDetailModalOpen(false);
+  const handleFollowUpSubmit = (reportId: string, followUp: string, followUpText: string) => {
+    if (followUp === "hayır") {
+      toast({
+        title: "Teşekkürler!",
+        description: "Geri bildiriminiz için teşekkür ederiz.",
+      });
+    } else if (followUp === "evet") {
+      const storedReports = JSON.parse(localStorage.getItem("reports") || "[]");
+      const updatedReports = storedReports.map((r: any) => {
+        if (r.id === reportId) {
+          return {
+            ...r,
+            status: "submitted",
+            userExplanation: followUpText,
+            userReportedUnresolved: true,
+          };
+        }
+        return r;
+      });
+      localStorage.setItem("reports", JSON.stringify(updatedReports));
+      loadReports();
+      toast({
+        title: "Rapor Güncellendi",
+        description: "Raporunuz belediyeye tekrar gönderildi.",
+      });
+    }
   };
 
   const handleResolutionResponse = (stillExists: boolean, explanation?: string) => {
@@ -185,14 +199,13 @@ const Dashboard = () => {
           onResponse={handleResolutionResponse}
         />
 
-        <ReportDetailModal
-          report={selectedReport}
-          open={detailModalOpen}
-          onOpenChange={setDetailModalOpen}
-          isAdmin={false}
-          onFollowUp={handleFollowUp}
-          onConfirmSolved={handleConfirmSolved}
-        />
+      <ReportDetailModal
+        report={selectedReport}
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        isAdmin={false}
+        onFollowUpSubmit={handleFollowUpSubmit}
+      />
       </main>
     </div>
   );

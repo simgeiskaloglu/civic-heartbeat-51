@@ -1,16 +1,10 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import React, { useState } from "react";
 import { Report } from "./ReportCard";
-import { StatusBadge } from "./StatusBadge";
-import { Button } from "./ui/button";
-import { Calendar, MapPin, Tag, CheckCircle2, Clock } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { tr } from "date-fns/locale";
+import { X } from "lucide-react";
+import { Button } from "./ui/button";
+import { Textarea } from "./ui/textarea";
 
 interface ReportDetailModalProps {
   report: Report | null;
@@ -19,8 +13,7 @@ interface ReportDetailModalProps {
   isAdmin?: boolean;
   onApprove?: (reportId: string) => void;
   onMarkSolved?: (reportId: string) => void;
-  onFollowUp?: (reportId: string) => void;
-  onConfirmSolved?: (reportId: string) => void;
+  onFollowUpSubmit?: (reportId: string, followUp: string, followUpText: string) => void;
 }
 
 export const ReportDetailModal = ({
@@ -30,14 +23,29 @@ export const ReportDetailModal = ({
   isAdmin = false,
   onApprove,
   onMarkSolved,
-  onFollowUp,
-  onConfirmSolved,
+  onFollowUpSubmit,
 }: ReportDetailModalProps) => {
-  if (!report) return null;
+  const [followUp, setFollowUp] = useState<string | null>(null);
+  const [followUpText, setFollowUpText] = useState("");
+
+  if (!report || !open) return null;
+
+  const handleSubmit = () => {
+    if (followUp === "evet" && !followUpText.trim()) {
+      alert("Lütfen kısa bir açıklama yazın.");
+      return;
+    }
+    if (onFollowUpSubmit && followUp) {
+      onFollowUpSubmit(report.id, followUp, followUpText);
+      setFollowUp(null);
+      setFollowUpText("");
+      onOpenChange(false);
+    }
+  };
 
   const calculateDuration = () => {
-    if (report.submittedAt && report.resolvedAt) {
-      return differenceInDays(report.resolvedAt, report.submittedAt);
+    if (report.approvedAt && report.resolvedAt) {
+      return Math.ceil(differenceInDays(report.resolvedAt, report.approvedAt));
     }
     return null;
   };
@@ -45,219 +53,138 @@ export const ReportDetailModal = ({
   const duration = calculateDuration();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">{report.title}</DialogTitle>
-          <DialogDescription>
-            Rapor detayları ve süreç takibi
-          </DialogDescription>
-        </DialogHeader>
+    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+      <div className="bg-background rounded-2xl shadow-lg w-full max-w-lg p-6 relative max-h-[90vh] overflow-y-auto">
+        {/* Kapatma Butonu */}
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
+        >
+          <X className="h-5 w-5" />
+        </button>
 
-        <div className="space-y-6">
-          {/* Image */}
-          {report.imageUrl && (
-            <div className="aspect-video w-full overflow-hidden rounded-lg bg-muted">
-              <img
-                src={report.imageUrl}
-                alt={report.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
+        {/* Başlık */}
+        <h2 className="text-xl font-semibold text-center mb-4">
+          {report.title || "Rapor Detayı"}
+        </h2>
+
+        {/* Genel Bilgiler */}
+        <div className="space-y-2 mb-4 text-sm">
+          <p>
+            <strong>Durum:</strong>{" "}
+            <span className="capitalize">{report.status}</span>
+          </p>
+          {report.createdAt && (
+            <p>
+              <strong>Oluşturulma Tarihi:</strong>{" "}
+              {format(report.createdAt, "dd MMMM yyyy, HH:mm", { locale: tr })}
+            </p>
           )}
+          {report.approvedAt && (
+            <p>
+              <strong>Belediye Onay Tarihi:</strong>{" "}
+              {format(report.approvedAt, "dd MMMM yyyy, HH:mm", { locale: tr })}
+            </p>
+          )}
+          {report.resolvedAt && (
+            <p>
+              <strong>Çözülme Tarihi:</strong>{" "}
+              {format(report.resolvedAt, "dd MMMM yyyy, HH:mm", { locale: tr })}
+            </p>
+          )}
+          {duration !== null && (
+            <p>
+              <strong>Toplam Çözüm Süresi:</strong> {duration} gün
+            </p>
+          )}
+        </div>
 
-          {/* Status */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Durum:</span>
-            <StatusBadge status={report.status} />
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <h3 className="font-semibold">Açıklama</h3>
-            <p className="text-sm text-muted-foreground">{report.description}</p>
-          </div>
-
-          {/* Location & Category */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <MapPin className="h-4 w-4" />
-                Konum
-              </div>
-              <p className="text-sm text-muted-foreground">{report.location}</p>
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Tag className="h-4 w-4" />
-                Kategori
-              </div>
-              <p className="text-sm text-muted-foreground capitalize">{report.category}</p>
-            </div>
-          </div>
-
-          {/* Process Timeline */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Süreç Takibi</h3>
-              {duration !== null && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  <span>Toplam Süre: {duration} gün</span>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-4 relative pl-8 border-l-2 border-muted">
-              {/* Submitted */}
-              {report.submittedAt && (
-                <div className="relative">
-                  <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-primary border-4 border-background" />
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                      <span className="font-medium text-sm">Rapor Gönderildi</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {format(report.submittedAt, "dd MMMM yyyy, HH:mm", { locale: tr })}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Approved */}
-              {report.approvedAt && (
-                <div className="relative">
-                  <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-primary border-4 border-background" />
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                      <span className="font-medium text-sm">Belediye Onayladı</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {format(report.approvedAt, "dd MMMM yyyy, HH:mm", { locale: tr })}
-                    </p>
-                    {report.submittedAt && (
-                      <p className="text-xs text-muted-foreground">
-                        ({differenceInDays(report.approvedAt, report.submittedAt)} gün sonra)
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Resolved */}
-              {report.resolvedAt && (
-                <div className="relative">
-                  <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-success border-4 border-background" />
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-success" />
-                      <span className="font-medium text-sm">Sorun Çözüldü</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {format(report.resolvedAt, "dd MMMM yyyy, HH:mm", { locale: tr })}
-                    </p>
-                    {report.approvedAt && (
-                      <p className="text-xs text-muted-foreground">
-                        ({differenceInDays(report.resolvedAt, report.approvedAt)} gün sonra)
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* If not yet completed */}
-              {!report.approvedAt && report.status === "submitted" && (
-                <div className="relative">
-                  <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-muted border-4 border-background" />
-                  <div className="space-y-1">
-                    <span className="font-medium text-sm text-muted-foreground">
-                      Belediye Onayı Bekleniyor
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {!report.resolvedAt && report.status === "in-progress" && (
-                <div className="relative">
-                  <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-muted border-4 border-background" />
-                  <div className="space-y-1">
-                    <span className="font-medium text-sm text-muted-foreground">
-                      Çözüm Bekleniyor
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Admin Response if exists */}
+        {/* Açıklamalar */}
+        <div className="border-t border-border pt-3 space-y-2 mb-4 text-sm">
+          <p>
+            <strong>Kullanıcı Açıklaması:</strong>{" "}
+            {report.description || "—"}
+          </p>
           {report.adminResponse && (
-            <div className="p-4 bg-primary/10 rounded-lg space-y-2">
-              <p className="text-sm font-semibold text-primary">
-                📋 Belediye Yanıtı
-              </p>
-              <p className="text-sm">{report.adminResponse}</p>
-            </div>
+            <p>
+              <strong>Belediye Açıklaması:</strong> {report.adminResponse}
+            </p>
           )}
-
-          {/* User Explanation if exists */}
           {report.userExplanation && (
-            <div className="p-4 bg-destructive/10 rounded-lg space-y-2">
-              <p className="text-sm font-semibold text-destructive">
-                ⚠️ Kullanıcı Takip Notu
-              </p>
-              <p className="text-sm">{report.userExplanation}</p>
-            </div>
+            <p className="text-muted-foreground italic">
+              <strong>Son Geri Bildirim:</strong> {report.userExplanation}
+            </p>
           )}
+        </div>
 
-          {/* Action Buttons */}
-          {isAdmin ? (
-            <div className="flex gap-3 pt-4 border-t">
+        {/* Kullanıcı Geri Bildirim Alanı */}
+        {!isAdmin && report.status === "resolved" && (
+          <div className="border-t border-border pt-3">
+            <p className="font-medium mb-2">Sorun hâlâ devam ediyor mu?</p>
+            <div className="flex gap-3 mb-3">
+              <Button
+                onClick={() => setFollowUp("evet")}
+                variant={followUp === "evet" ? "destructive" : "outline"}
+                className="flex-1"
+              >
+                Evet
+              </Button>
+              <Button
+                onClick={() => setFollowUp("hayır")}
+                variant={followUp === "hayır" ? "default" : "outline"}
+                className="flex-1"
+              >
+                Hayır
+              </Button>
+            </div>
+
+            {followUp === "evet" && (
+              <Textarea
+                className="mb-3"
+                placeholder="Sorunun devam ettiğini kısaca açıklayın..."
+                value={followUpText}
+                onChange={(e) => setFollowUpText(e.target.value)}
+              />
+            )}
+
+            {(followUp === "evet" || followUp === "hayır") && (
+              <Button
+                onClick={handleSubmit}
+                className="w-full"
+              >
+                Gönder
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Admin Görünümü */}
+        {isAdmin && (
+          <div className="border-t border-border pt-3">
+            <p className="font-medium mb-2">Belediye İşlemleri:</p>
+            <div className="flex gap-3">
               {report.status === "submitted" && onApprove && (
-                <Button 
+                <Button
                   onClick={() => onApprove(report.id)}
+                  variant="default"
                   className="flex-1"
                 >
                   Onayla
                 </Button>
               )}
               {report.status === "in-progress" && onMarkSolved && (
-                <Button 
+                <Button
                   onClick={() => onMarkSolved(report.id)}
+                  variant="default"
                   className="flex-1"
                 >
                   Çözüldü Olarak İşaretle
                 </Button>
               )}
             </div>
-          ) : (
-            report.status === "resolved" && (
-              <div className="flex gap-3 pt-4 border-t">
-                {onFollowUp && (
-                  <Button 
-                    variant="destructive"
-                    onClick={() => onFollowUp(report.id)}
-                    className="flex-1"
-                  >
-                    Sorun Devam Ediyor
-                  </Button>
-                )}
-                {onConfirmSolved && (
-                  <Button 
-                    variant="outline"
-                    onClick={() => onConfirmSolved(report.id)}
-                    className="flex-1"
-                  >
-                    Sorun Çözüldü
-                  </Button>
-                )}
-              </div>
-            )
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
