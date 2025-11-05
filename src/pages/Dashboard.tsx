@@ -203,7 +203,7 @@ const Dashboard = () => {
         report={selectedReport}
         open={detailModalOpen}
         onOpenChange={setDetailModalOpen}
-        isAdmin={false}
+        showFollowUp={true}
         onFollowUpSubmit={handleFollowUpSubmit}
       />
       </main>

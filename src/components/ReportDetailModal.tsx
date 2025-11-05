@@ -10,9 +10,7 @@ interface ReportDetailModalProps {
   report: Report | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  isAdmin?: boolean;
-  onApprove?: (reportId: string) => void;
-  onMarkSolved?: (reportId: string) => void;
+  showFollowUp?: boolean;
   onFollowUpSubmit?: (reportId: string, followUp: string, followUpText: string) => void;
 }
 
@@ -20,9 +18,7 @@ export const ReportDetailModal = ({
   report,
   open,
   onOpenChange,
-  isAdmin = false,
-  onApprove,
-  onMarkSolved,
+  showFollowUp = false,
   onFollowUpSubmit,
 }: ReportDetailModalProps) => {
   const [followUp, setFollowUp] = useState<string | null>(null);
@@ -58,7 +54,7 @@ export const ReportDetailModal = ({
         {/* Kapatma Butonu */}
         <button
           onClick={() => onOpenChange(false)}
-          className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
+          className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
         >
           <X className="h-5 w-5" />
         </button>
@@ -117,8 +113,8 @@ export const ReportDetailModal = ({
           )}
         </div>
 
-        {/* Kullanıcı Geri Bildirim Alanı */}
-        {!isAdmin && report.status === "resolved" && (
+        {/* Sadece Raporlarım Sayfasında Gözüken Alan */}
+        {showFollowUp && report.status === "resolved" && (
           <div className="border-t border-border pt-3">
             <p className="font-medium mb-2">Sorun hâlâ devam ediyor mu?</p>
             <div className="flex gap-3 mb-3">
@@ -155,33 +151,6 @@ export const ReportDetailModal = ({
                 Gönder
               </Button>
             )}
-          </div>
-        )}
-
-        {/* Admin Görünümü */}
-        {isAdmin && (
-          <div className="border-t border-border pt-3">
-            <p className="font-medium mb-2">Belediye İşlemleri:</p>
-            <div className="flex gap-3">
-              {report.status === "submitted" && onApprove && (
-                <Button
-                  onClick={() => onApprove(report.id)}
-                  variant="default"
-                  className="flex-1"
-                >
-                  Onayla
-                </Button>
-              )}
-              {report.status === "in-progress" && onMarkSolved && (
-                <Button
-                  onClick={() => onMarkSolved(report.id)}
-                  variant="default"
-                  className="flex-1"
-                >
-                  Çözüldü Olarak İşaretle
-                </Button>
-              )}
-            </div>
           </div>
         )}
       </div>

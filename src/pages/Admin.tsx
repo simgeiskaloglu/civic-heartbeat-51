@@ -8,15 +8,12 @@ import { StatusBadge, ReportStatus } from "@/components/StatusBadge";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ReportDetailModal } from "@/components/ReportDetailModal";
 
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [reports, setReports] = useState<Report[]>([]);
   const [filter, setFilter] = useState<ReportStatus | "all" | "unresolved">("all");
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   useEffect(() => {
     // Check if user is admin
@@ -79,12 +76,10 @@ const Admin = () => {
 
   const handleApprove = (reportId: string) => {
     updateReportStatus(reportId, "in-progress");
-    setDetailModalOpen(false);
   };
 
   const handleMarkSolved = (reportId: string) => {
     updateReportStatus(reportId, "resolved");
-    setDetailModalOpen(false);
   };
 
   const unresolvedReports = reports.filter((r) => r.userReportedUnresolved === true);
@@ -139,11 +134,7 @@ const Admin = () => {
                 {filteredReports.map((report) => (
                   <Card 
                     key={report.id} 
-                    className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                    onClick={() => {
-                      setSelectedReport(report);
-                      setDetailModalOpen(true);
-                    }}
+                    className="overflow-hidden"
                   >
                     {report.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden bg-muted">
@@ -181,21 +172,32 @@ const Admin = () => {
                         </div>
                       )}
                     </CardContent>
+                    <CardFooter className="flex gap-2">
+                      {report.status === "submitted" && (
+                        <Button
+                          onClick={() => handleApprove(report.id)}
+                          className="flex-1"
+                          size="sm"
+                        >
+                          Onayla
+                        </Button>
+                      )}
+                      {report.status === "in-progress" && (
+                        <Button
+                          onClick={() => handleMarkSolved(report.id)}
+                          className="flex-1"
+                          size="sm"
+                        >
+                          Çözüldü İşaretle
+                        </Button>
+                      )}
+                    </CardFooter>
                   </Card>
                 ))}
               </div>
             )}
           </TabsContent>
         </Tabs>
-
-        <ReportDetailModal
-          report={selectedReport}
-          open={detailModalOpen}
-          onOpenChange={setDetailModalOpen}
-          isAdmin={true}
-          onApprove={handleApprove}
-          onMarkSolved={handleMarkSolved}
-        />
       </main>
     </div>
   );
