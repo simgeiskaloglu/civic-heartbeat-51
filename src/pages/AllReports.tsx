@@ -1,27 +1,22 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Report } from "@/components/ReportCard";
 import { Link } from "react-router-dom";
-import { AlertCircle, ArrowLeft, Send } from "lucide-react";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { StatusBadge } from "@/components/StatusBadge";
-import { format } from "date-fns";
+import { AlertCircle, ArrowLeft } from "lucide-react";
+import { format, differenceInDays } from "date-fns";
+import { tr } from "date-fns/locale";
 import { ReportDetailModal } from "@/components/ReportDetailModal";
-
-interface Comment {
-  id: string;
-  text: string;
-  createdAt: Date;
-}
-
-interface ReportWithComments extends Report {
-  comments: Comment[];
-}
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const AllReports = () => {
-  const [reports, setReports] = useState<ReportWithComments[]>([]);
-  const [commentTexts, setCommentTexts] = useState<{ [key: string]: string }>({});
+  const [reports, setReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 
@@ -33,36 +28,20 @@ const AllReports = () => {
       submittedAt: report.submittedAt ? new Date(report.submittedAt) : undefined,
       approvedAt: report.approvedAt ? new Date(report.approvedAt) : undefined,
       resolvedAt: report.resolvedAt ? new Date(report.resolvedAt) : undefined,
-      comments: (report.comments || []).map((comment: any) => ({
-        ...comment,
-        createdAt: new Date(comment.createdAt),
-      })),
     }));
     setReports(parsedReports);
   }, []);
 
-  const handleAddComment = (reportId: string) => {
-    const commentText = commentTexts[reportId]?.trim();
-    if (!commentText) return;
+  const calculateDuration = (report: Report) => {
+    if (report.approvedAt && report.resolvedAt) {
+      return differenceInDays(report.resolvedAt, report.approvedAt);
+    }
+    return null;
+  };
 
-    const updatedReports = reports.map((report) => {
-      if (report.id === reportId) {
-        const newComment: Comment = {
-          id: Math.random().toString(36).substr(2, 9),
-          text: commentText,
-          createdAt: new Date(),
-        };
-        return {
-          ...report,
-          comments: [...(report.comments || []), newComment],
-        };
-      }
-      return report;
-    });
-
-    setReports(updatedReports);
-    localStorage.setItem("reports", JSON.stringify(updatedReports));
-    setCommentTexts({ ...commentTexts, [reportId]: "" });
+  const handleRowClick = (report: Report) => {
+    setSelectedReport(report);
+    setDetailModalOpen(true);
   };
 
   return (
@@ -77,7 +56,7 @@ const AllReports = () => {
           </Link>
           <div className="flex items-center gap-2">
             <AlertCircle className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold text-foreground">Kullanıcı Raporları</h1>
+            <h1 className="text-xl font-bold text-foreground">Tüm Raporlar</h1>
           </div>
         </div>
       </header>
@@ -88,84 +67,58 @@ const AllReports = () => {
             <p className="text-muted-foreground">Henüz rapor yok</p>
           </div>
         ) : (
-          <div className="space-y-6 max-w-3xl mx-auto">
-            {reports.map((report) => (
-              <Card 
-                key={report.id} 
-                className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => {
-                  setSelectedReport(report);
-                  setDetailModalOpen(true);
-                }}
-              >
-                {report.imageUrl && (
-                  <div className="aspect-video w-full overflow-hidden bg-muted">
-                    <img
-                      src={report.imageUrl}
-                      alt={report.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <CardHeader className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-lg">{report.title}</h3>
-                    <StatusBadge status={report.status} />
-                  </div>
-                  <p className="text-sm text-muted-foreground">{report.description}</p>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span>{report.location}</span>
-                    <span>{format(report.createdAt, "dd/MM/yyyy")}</span>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">Yorumlar</h4>
-                    {report.comments && report.comments.length > 0 ? (
-                      <div className="space-y-2">
-                        {report.comments.map((comment) => (
-                          <div
-                            key={comment.id}
-                            className="bg-muted p-3 rounded-md text-sm"
-                          >
-                            <p>{comment.text}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {format(comment.createdAt, "dd/MM/yyyy HH:mm")}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Henüz yorum yok</p>
-                    )}
-                  </div>
-                </CardContent>
-
-                <CardFooter>
-                  <div className="flex gap-2 w-full" onClick={(e) => e.stopPropagation()}>
-                    <Input
-                      placeholder="Yorum ekle..."
-                      value={commentTexts[report.id] || ""}
-                      onChange={(e) =>
-                        setCommentTexts({ ...commentTexts, [report.id]: e.target.value })
-                      }
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          handleAddComment(report.id);
-                        }
-                      }}
-                    />
-                    <Button
-                      size="icon"
-                      onClick={() => handleAddComment(report.id)}
+          <div className="rounded-lg border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Başlık</TableHead>
+                  <TableHead>Durum</TableHead>
+                  <TableHead>Oluşturulma Tarihi</TableHead>
+                  <TableHead>Belediye Onay Tarihi</TableHead>
+                  <TableHead>Çözülme Tarihi</TableHead>
+                  <TableHead>Toplam Çözüm Süresi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reports.map((report) => {
+                  const duration = calculateDuration(report);
+                  return (
+                    <TableRow
+                      key={report.id}
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => handleRowClick(report)}
                     >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            ))}
+                      <TableCell className="font-medium">{report.title}</TableCell>
+                      <TableCell>
+                        <span className="capitalize text-sm">
+                          {report.status === "submitted" && "Gönderildi"}
+                          {report.status === "in-progress" && "Onaylandı"}
+                          {report.status === "resolved" && "Çözüldü"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {report.createdAt
+                          ? format(report.createdAt, "dd MMMM yyyy, HH:mm", { locale: tr })
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {report.approvedAt
+                          ? format(report.approvedAt, "dd MMMM yyyy, HH:mm", { locale: tr })
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {report.resolvedAt
+                          ? format(report.resolvedAt, "dd MMMM yyyy, HH:mm", { locale: tr })
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {duration !== null ? `${duration} gün` : "-"}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
         )}
 
