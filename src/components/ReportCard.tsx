@@ -18,6 +18,7 @@ export interface Report {
   userReportedUnresolved?: boolean;
   userExplanation?: string;
   adminResponse?: string;
+  comments?: Array<{ text: string; date: string }>;
 }
 
 interface ReportCardProps {

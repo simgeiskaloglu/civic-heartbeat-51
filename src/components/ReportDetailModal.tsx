@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Report } from "./ReportCard";
 import { format, differenceInDays } from "date-fns";
 import { tr } from "date-fns/locale";
-import { X } from "lucide-react";
+import { X, CheckCircle2, Clock } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 
@@ -64,52 +64,82 @@ export const ReportDetailModal = ({
           {report.title || "Rapor Detayı"}
         </h2>
 
-        {/* Genel Bilgiler */}
-        <div className="space-y-2 mb-4 text-sm">
-          <p>
-            <strong>Durum:</strong>{" "}
-            <span className="capitalize">{report.status}</span>
-          </p>
-          {report.createdAt && (
-            <p>
-              <strong>Oluşturulma Tarihi:</strong>{" "}
-              {format(report.createdAt, "dd MMMM yyyy, HH:mm", { locale: tr })}
-            </p>
-          )}
-          {report.approvedAt && (
-            <p>
-              <strong>Belediye Onay Tarihi:</strong>{" "}
-              {format(report.approvedAt, "dd MMMM yyyy, HH:mm", { locale: tr })}
-            </p>
-          )}
-          {report.resolvedAt && (
-            <p>
-              <strong>Çözülme Tarihi:</strong>{" "}
-              {format(report.resolvedAt, "dd MMMM yyyy, HH:mm", { locale: tr })}
-            </p>
-          )}
-          {duration !== null && (
-            <p>
-              <strong>Toplam Çözüm Süresi:</strong> {duration} gün
-            </p>
-          )}
+        {/* Timeline Section */}
+        <div className="border-t border-border pt-4 mb-4">
+          <h3 className="text-sm font-semibold mb-3 text-foreground">Süreç Zaman Çizelgesi</h3>
+          <div className="space-y-3">
+            <div className="flex gap-3 items-start">
+              <div className="rounded-full bg-primary/10 p-2 mt-0.5">
+                <Clock className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">Rapor Gönderildi</p>
+                <p className="text-xs text-muted-foreground">
+                  {format(report.createdAt, "dd MMMM yyyy, HH:mm", { locale: tr })}
+                </p>
+              </div>
+            </div>
+
+            {report.approvedAt && (
+              <div className="flex gap-3 items-start">
+                <div className="rounded-full bg-primary/10 p-2 mt-0.5">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">Belediye Onayladı</p>
+                  <p className="text-xs text-muted-foreground">
+                    {format(report.approvedAt, "dd MMMM yyyy, HH:mm", { locale: tr })}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {report.resolvedAt && (
+              <div className="flex gap-3 items-start">
+                <div className="rounded-full bg-primary/10 p-2 mt-0.5">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">Sorun Çözüldü</p>
+                  <p className="text-xs text-muted-foreground">
+                    {format(report.resolvedAt, "dd MMMM yyyy, HH:mm", { locale: tr })}
+                  </p>
+                  {duration !== null && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Toplam süre: <span className="font-medium">{duration} gün</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Açıklamalar */}
-        <div className="border-t border-border pt-3 space-y-2 mb-4 text-sm">
-          <p>
-            <strong>Kullanıcı Açıklaması:</strong>{" "}
-            {report.description || "—"}
-          </p>
+        {/* Description Section */}
+        <div className="border-t border-border pt-4 space-y-3 mb-4 text-sm">
+          <div>
+            <p className="text-sm font-medium text-foreground">Konum:</p>
+            <p className="text-sm text-muted-foreground">{report.location || "—"}</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">Kategori:</p>
+            <p className="text-sm text-muted-foreground">{report.category || "—"}</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">Açıklama:</p>
+            <p className="text-sm text-muted-foreground">{report.description || "—"}</p>
+          </div>
           {report.adminResponse && (
-            <p>
-              <strong>Belediye Açıklaması:</strong> {report.adminResponse}
-            </p>
+            <div>
+              <p className="text-sm font-medium text-foreground">Belediye Açıklaması:</p>
+              <p className="text-sm text-muted-foreground">{report.adminResponse}</p>
+            </div>
           )}
           {report.userExplanation && (
-            <p className="text-muted-foreground italic">
-              <strong>Son Geri Bildirim:</strong> {report.userExplanation}
-            </p>
+            <div>
+              <p className="text-sm font-medium text-foreground">Son Geri Bildirim:</p>
+              <p className="text-sm text-muted-foreground italic">{report.userExplanation}</p>
+            </div>
           )}
         </div>
 

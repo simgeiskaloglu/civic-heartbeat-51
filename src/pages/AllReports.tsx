@@ -3,24 +3,26 @@ import { Button } from "@/components/ui/button";
 import { Report } from "@/components/ReportCard";
 import { Link } from "react-router-dom";
 import { AlertCircle, ArrowLeft } from "lucide-react";
-import { format, differenceInDays } from "date-fns";
+import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { ReportDetailModal } from "@/components/ReportDetailModal";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 const AllReports = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [comments, setComments] = useState<{ [key: string]: string }>({});
+  const { toast } = useToast();
 
   useEffect(() => {
+    loadReports();
+  }, []);
+
+  const loadReports = () => {
     const storedReports = JSON.parse(localStorage.getItem("reports") || "[]");
     const parsedReports = storedReports.map((report: any) => ({
       ...report,
@@ -28,20 +30,44 @@ const AllReports = () => {
       submittedAt: report.submittedAt ? new Date(report.submittedAt) : undefined,
       approvedAt: report.approvedAt ? new Date(report.approvedAt) : undefined,
       resolvedAt: report.resolvedAt ? new Date(report.resolvedAt) : undefined,
+      comments: report.comments || [],
     }));
     setReports(parsedReports);
-  }, []);
-
-  const calculateDuration = (report: Report) => {
-    if (report.approvedAt && report.resolvedAt) {
-      return differenceInDays(report.resolvedAt, report.approvedAt);
-    }
-    return null;
   };
 
-  const handleRowClick = (report: Report) => {
+  const handleCardClick = (report: Report) => {
     setSelectedReport(report);
     setDetailModalOpen(true);
+  };
+
+  const handleAddComment = (reportId: string) => {
+    const commentText = comments[reportId]?.trim();
+    if (!commentText) return;
+
+    const storedReports = JSON.parse(localStorage.getItem("reports") || "[]");
+    const updatedReports = storedReports.map((report: any) =>
+      report.id === reportId
+        ? {
+            ...report,
+            comments: [
+              ...(report.comments || []),
+              {
+                text: commentText,
+                date: new Date().toISOString(),
+              },
+            ],
+          }
+        : report
+    );
+
+    localStorage.setItem("reports", JSON.stringify(updatedReports));
+    loadReports();
+    setComments({ ...comments, [reportId]: "" });
+    
+    toast({
+      title: "Yorum eklendi",
+      description: "Yorumunuz başarıyla eklendi.",
+    });
   };
 
   return (
@@ -67,58 +93,64 @@ const AllReports = () => {
             <p className="text-muted-foreground">Henüz rapor yok</p>
           </div>
         ) : (
-          <div className="rounded-lg border border-border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Başlık</TableHead>
-                  <TableHead>Durum</TableHead>
-                  <TableHead>Oluşturulma Tarihi</TableHead>
-                  <TableHead>Belediye Onay Tarihi</TableHead>
-                  <TableHead>Çözülme Tarihi</TableHead>
-                  <TableHead>Toplam Çözüm Süresi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reports.map((report) => {
-                  const duration = calculateDuration(report);
-                  return (
-                    <TableRow
-                      key={report.id}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => handleRowClick(report)}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {reports.map((report) => (
+              <Card key={report.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <div onClick={() => handleCardClick(report)} className="cursor-pointer">
+                  {report.imageUrl && (
+                    <img
+                      src={report.imageUrl}
+                      alt={report.title}
+                      className="w-full h-48 object-cover"
+                    />
+                  )}
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold text-lg">{report.title}</h3>
+                      <StatusBadge status={report.status} />
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {report.description}
+                    </p>
+                    <div className="text-xs text-muted-foreground">
+                      <p>📍 {report.location}</p>
+                      <p>📅 {format(report.createdAt, "dd MMMM yyyy", { locale: tr })}</p>
+                    </div>
+                  </CardContent>
+                </div>
+                
+                {/* Comments Section */}
+                <div className="border-t px-4 py-3 bg-muted/20">
+                  {report.comments && report.comments.length > 0 && (
+                    <div className="mb-3 space-y-2 max-h-32 overflow-y-auto">
+                      {report.comments.map((comment: any, idx: number) => (
+                        <div key={idx} className="text-xs bg-background p-2 rounded">
+                          <p className="text-foreground">{comment.text}</p>
+                          <p className="text-muted-foreground mt-1">
+                            {format(new Date(comment.date), "dd MMM yyyy, HH:mm", { locale: tr })}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Textarea
+                      placeholder="Yorum ekle..."
+                      value={comments[report.id] || ""}
+                      onChange={(e) => setComments({ ...comments, [report.id]: e.target.value })}
+                      className="text-sm min-h-[60px]"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAddComment(report.id)}
+                      disabled={!comments[report.id]?.trim()}
                     >
-                      <TableCell className="font-medium">{report.title}</TableCell>
-                      <TableCell>
-                        <span className="capitalize text-sm">
-                          {report.status === "submitted" && "Gönderildi"}
-                          {report.status === "in-progress" && "Onaylandı"}
-                          {report.status === "resolved" && "Çözüldü"}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {report.createdAt
-                          ? format(report.createdAt, "dd MMMM yyyy, HH:mm", { locale: tr })
-                          : "-"}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {report.approvedAt
-                          ? format(report.approvedAt, "dd MMMM yyyy, HH:mm", { locale: tr })
-                          : "-"}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {report.resolvedAt
-                          ? format(report.resolvedAt, "dd MMMM yyyy, HH:mm", { locale: tr })
-                          : "-"}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {duration !== null ? `${duration} gün` : "-"}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                      Gönder
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         )}
 
