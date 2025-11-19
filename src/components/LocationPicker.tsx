@@ -48,6 +48,25 @@ export const LocationPicker = ({ onLocationSelect, currentLocation }: LocationPi
     }
   }, [currentLocation]);
 
+  // Auto-center on user's location when component mounts
+  useEffect(() => {
+    if (navigator.geolocation && !currentLocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const locationString = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          setLocation(locationString);
+          setMapPosition([lat, lng]);
+          onLocationSelect(locationString);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    }
+  }, []);
+
   const handleUseCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
