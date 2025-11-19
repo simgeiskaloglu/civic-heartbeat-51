@@ -3,7 +3,7 @@ import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -20,6 +20,16 @@ interface LocationPickerProps {
   currentLocation?: string;
 }
 
+function MapUpdater({ center }: { center: [number, number] }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    map.setView(center, map.getZoom());
+  }, [center, map]);
+  
+  return null;
+}
+
 function LocationMarker({ position, setPosition }: { position: [number, number]; setPosition: (pos: [number, number]) => void }) {
   useMapEvents({
     click(e) {
@@ -27,17 +37,16 @@ function LocationMarker({ position, setPosition }: { position: [number, number];
     },
   });
 
-  return position ? (
+  return (
     <Marker position={position}>
       <Popup>Seçilen konum</Popup>
     </Marker>
-  ) : null;
+  );
 }
 
 export const LocationPicker = ({ onLocationSelect, currentLocation }: LocationPickerProps) => {
   const [location, setLocation] = useState(currentLocation || "");
   const [mapPosition, setMapPosition] = useState<[number, number]>([39.9334, 32.8597]); // Default: Ankara
-  const [mapKey, setMapKey] = useState(0);
 
   useEffect(() => {
     if (currentLocation && currentLocation.includes(",")) {
@@ -76,7 +85,6 @@ export const LocationPicker = ({ onLocationSelect, currentLocation }: LocationPi
           const locationString = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
           setLocation(locationString);
           setMapPosition([lat, lng]);
-          setMapKey(prev => prev + 1); // Force map re-center
           onLocationSelect(locationString);
         },
         (error) => {
@@ -121,11 +129,11 @@ export const LocationPicker = ({ onLocationSelect, currentLocation }: LocationPi
       {/* Interactive Leaflet Map */}
       <div className="w-full h-[350px] rounded-lg overflow-hidden border-2 border-border">
         <MapContainer
-          key={mapKey}
           center={mapPosition}
           zoom={13}
           style={{ height: "100%", width: "100%" }}
         >
+          <MapUpdater center={mapPosition} />
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
