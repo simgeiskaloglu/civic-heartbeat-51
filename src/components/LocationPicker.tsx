@@ -20,17 +20,17 @@ interface LocationPickerProps {
   currentLocation?: string;
 }
 
-function MapUpdater({ center }: { center: [number, number] }) {
+function MapContent({ center, position, setPosition }: {
+  center: [number, number];
+  position: [number, number];
+  setPosition: (pos: [number, number]) => void
+}) {
   const map = useMap();
   
   useEffect(() => {
     map.setView(center, map.getZoom());
   }, [center, map]);
-  
-  return null;
-}
 
-function LocationMarker({ position, setPosition }: { position: [number, number]; setPosition: (pos: [number, number]) => void }) {
   useMapEvents({
     click(e) {
       setPosition([e.latlng.lat, e.latlng.lng]);
@@ -38,9 +38,16 @@ function LocationMarker({ position, setPosition }: { position: [number, number];
   });
 
   return (
-    <Marker position={position}>
-      <Popup>Seçilen konum</Popup>
-    </Marker>
+    <>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        maxZoom={19}
+      />
+      <Marker position={position}>
+        <Popup>Seçilen konum</Popup>
+      </Marker>
+    </>
   );
 }
 
@@ -133,13 +140,11 @@ export const LocationPicker = ({ onLocationSelect, currentLocation }: LocationPi
           zoom={13}
           style={{ height: "100%", width: "100%" }}
         >
-          <MapUpdater center={mapPosition} />
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            maxZoom={19}
+          <MapContent
+            center={mapPosition}
+            position={mapPosition}
+            setPosition={handleMapPositionChange}
           />
-          <LocationMarker position={mapPosition} setPosition={handleMapPositionChange} />
         </MapContainer>
       </div>
     </div>
