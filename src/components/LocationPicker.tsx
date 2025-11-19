@@ -1,93 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-
-// Fix for default marker icon
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
 
 interface LocationPickerProps {
   onLocationSelect: (location: string) => void;
   currentLocation?: string;
 }
 
-function MapUpdater({ center }: { center: [number, number] }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    map.setView(center, map.getZoom());
-  }, [center, map]);
-  
-  return null;
-}
-
-function LocationMarker({ position, setPosition }: { 
-  position: [number, number]; 
-  setPosition: (pos: [number, number]) => void 
-}) {
-  useMapEvents({
-    click(e) {
-      setPosition([e.latlng.lat, e.latlng.lng]);
-    },
-  });
-
-  return (
-    <Marker position={position}>
-      <Popup>Seçilen konum</Popup>
-    </Marker>
-  );
-}
-
 export const LocationPicker = ({ onLocationSelect, currentLocation }: LocationPickerProps) => {
   const [location, setLocation] = useState(currentLocation || "");
-  const [mapPosition, setMapPosition] = useState<[number, number]>([39.9334, 32.8597]); // Default: Ankara
-
-  useEffect(() => {
-    if (currentLocation && currentLocation.includes(",")) {
-      const [lat, lng] = currentLocation.split(",").map(s => parseFloat(s.trim()));
-      if (!isNaN(lat) && !isNaN(lng)) {
-        setMapPosition([lat, lng]);
-      }
-    }
-  }, [currentLocation]);
-
-  // Auto-center on user's location when component mounts
-  useEffect(() => {
-    if (navigator.geolocation && !currentLocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const locationString = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-          setLocation(locationString);
-          setMapPosition([lat, lng]);
-          onLocationSelect(locationString);
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-        }
-      );
-    }
-  }, []);
 
   const handleUseCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const locationString = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          const locationString = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
           setLocation(locationString);
-          setMapPosition([lat, lng]);
           onLocationSelect(locationString);
         },
         (error) => {
@@ -95,13 +25,6 @@ export const LocationPicker = ({ onLocationSelect, currentLocation }: LocationPi
         }
       );
     }
-  };
-
-  const handleMapPositionChange = (pos: [number, number]) => {
-    setMapPosition(pos);
-    const locationString = `${pos[0].toFixed(6)}, ${pos[1].toFixed(6)}`;
-    setLocation(locationString);
-    onLocationSelect(locationString);
   };
 
   return (
@@ -129,21 +52,13 @@ export const LocationPicker = ({ onLocationSelect, currentLocation }: LocationPi
         </div>
       </div>
       
-      {/* Interactive Leaflet Map */}
-      <div className="w-full h-[350px] rounded-lg overflow-hidden border-2 border-border">
-        <MapContainer
-          center={mapPosition}
-          zoom={13}
-          style={{ height: "100%", width: "100%" }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            maxZoom={19}
-          />
-          <MapUpdater center={mapPosition} />
-          <LocationMarker position={mapPosition} setPosition={handleMapPositionChange} />
-        </MapContainer>
+      {/* Simple map placeholder */}
+      <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center border-2 border-border">
+        <div className="text-center text-muted-foreground">
+          <MapPin className="h-12 w-12 mx-auto mb-2 text-primary" />
+          <p className="text-sm">Harita görünümü</p>
+          {location && <p className="text-xs mt-1">{location}</p>}
+        </div>
       </div>
     </div>
   );
